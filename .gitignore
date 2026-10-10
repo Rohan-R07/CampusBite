@@ -3,7 +3,12 @@ __pycache__/
 *.py[cod]
 *$py.class
 venv/
+
+# Environment files
 .env
+.env.*
+*.env
+!.env.example
 
 # Testing
 .pytest_cache/

@@ -293,3 +293,4 @@ Attempting to order an unavailable item (e.g., ID 4 - Masala Dosa, which has `av
 
 ## 📄 License
 This project is developed for educational and campus canteen automation purposes.
+
