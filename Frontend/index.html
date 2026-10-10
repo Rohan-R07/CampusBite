@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1e4d2b" />
+
+  <!-- SEO -->
+  <title>GD Palate – Fresh Campus Food, Shorter Waits</title>
+  <meta name="description" content="GD Palate is your campus canteen app. Order fresh South Indian meals, dosas, biryanis, juices and more. Skip the queue, schedule your pickup." />
+  <meta name="robots" content="index, follow" />
+  <meta property="og:title" content="GD Palate – Fresh Campus Food" />
+  <meta property="og:description" content="Order fresh, fast campus food at GD Palate. Breakfast, meals, biryani, beverages and more." />
+  <meta property="og:type" content="website" />
+
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<!-- ──────────────────────────────────────────────────────────
+     LEAF ANIMATION CANVAS
+     ────────────────────────────────────────────────────────── -->
+<canvas id="leaf-canvas" aria-hidden="true"></canvas>
+
+<!-- ──────────────────────────────────────────────────────────
+     NAVBAR
+     ────────────────────────────────────────────────────────── -->
+<header class="navbar" role="banner">
+  <div class="container navbar__inner">
+
+    <!-- Logo -->
+    <a href="#" class="navbar__logo" data-page="home" aria-label="GD Palate home">
+      <div class="navbar__logo-icon" aria-hidden="true">🌿</div>
+      <div class="navbar__logo-text">
+        <span class="navbar__logo-name">GD Palate</span>
+        <span class="navbar__logo-tagline">Campus Canteen</span>
+      </div>
+    </a>
+
+    <!-- Desktop Nav -->
+    <nav class="navbar__nav" aria-label="Main navigation">
+      <a href="#" class="nav-link active" data-page="home"   id="nav-home">Home</a>
+      <a href="#" class="nav-link"        data-page="menu"   id="nav-menu">Menu</a>
+      <a href="#" class="nav-link"        data-page="orders" id="nav-orders">Orders</a>
+      <a href="#" class="nav-link"        data-page="rewards" id="nav-rewards">Rewards</a>
+    </nav>
+
+    <!-- Right Actions -->
+    <div class="navbar__actions">
+      <button class="icon-btn" id="search-btn" aria-label="Search" title="Search menu" onclick="document.getElementById('nav-menu').click()">
+        <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+      </button>
+
+      <button class="icon-btn" id="cart-btn" aria-label="Cart">
+        <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <path d="M16 10a4 4 0 0 1-8 0"/>
+        </svg>
+        <span class="cart-badge" id="cart-badge" style="display:none">0</span>
+      </button>
+
+      <button class="icon-btn" id="profile-btn" aria-label="Profile" title="My profile" onclick="showToast('👤 Profile coming soon!')">
+        <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+      </button>
+
+      <!-- Mobile hamburger -->
+      <button class="navbar__hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobile-drawer">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+
+  </div>
+</header>
+
+<!-- Mobile Nav Drawer -->
+<nav class="navbar__mobile-drawer" id="mobile-drawer" aria-label="Mobile navigation">
+  <ul class="mobile-nav-links">
+    <li><a href="#" class="mobile-nav-link active" data-page="home">🏠 Home</a></li>
+    <li><a href="#" class="mobile-nav-link" data-page="menu">🍽️ Menu</a></li>
+    <li><a href="#" class="mobile-nav-link" data-page="orders">📦 Orders</a></li>
+    <li><a href="#" class="mobile-nav-link" data-page="rewards">⭐ Rewards</a></li>
+  </ul>
+</nav>
+
+<!-- ──────────────────────────────────────────────────────────
+     CART SLIDE-IN PANEL
+     ────────────────────────────────────────────────────────── -->
+<div class="cart-overlay" id="cart-overlay" role="dialog" aria-modal="true" aria-label="Shopping cart">
+  <aside class="cart-panel">
+    <div class="cart-panel__header">
+      <h2 class="cart-panel__title">Your Order</h2>
+      <button class="icon-btn" id="cart-close" aria-label="Close cart">✕</button>
+    </div>
+    <div class="cart-panel__body" id="cart-body"></div>
+    <div class="cart-panel__footer" id="cart-footer"></div>
+  </aside>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────
+     FOOD DETAIL MODAL
+     ────────────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="food-modal" role="dialog" aria-modal="true" aria-label="Food details">
+  <div class="modal-sheet" id="food-modal-content"></div>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────
+     TOAST CONTAINER
+     ────────────────────────────────────────────────────────── -->
+<div class="toast-container" id="toast-container" role="status" aria-live="polite"></div>
+
+<!-- ──────────────────────────────────────────────────────────
+     MAIN CONTENT – PAGE ROUTER
+     ────────────────────────────────────────────────────────── -->
+<main id="main-content">
+
+  <!-- ══════════════════════════════════════════════════════
+       PAGE: HOME
+       ══════════════════════════════════════════════════════ -->
+  <section id="page-home" class="page active" aria-label="Home">
+
+    <!-- BANNER -->
+    <section class="banner" aria-label="Welcome banner">
+
+      <!-- Botanical background decorations (SVG leaf shapes) -->
+      <div class="banner__bg" aria-hidden="true"></div>
+
+      <!-- Top-left leaf cluster -->
+      <svg class="banner__leaf banner__leaf--tl" viewBox="0 0 260 260" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <ellipse cx="80" cy="200" rx="72" ry="30" transform="rotate(-40 80 200)" fill="#4a8f5c" opacity="0.6"/>
+        <ellipse cx="140" cy="160" rx="60" ry="24" transform="rotate(-55 140 160)" fill="#5fa36e" opacity="0.5"/>
+        <ellipse cx="60" cy="130" rx="50" ry="20" transform="rotate(-25 60 130)" fill="#3d7a50" opacity="0.4"/>
+        <line x1="80" y1="200" x2="80" y2="130" stroke="#3d7a50" stroke-width="1.5" opacity="0.3"/>
+        <line x1="140" y1="160" x2="140" y2="100" stroke="#3d7a50" stroke-width="1.5" opacity="0.25"/>
+      </svg>
+
+      <!-- Bottom-right leaf cluster -->
+      <svg class="banner__leaf banner__leaf--br" viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <ellipse cx="110" cy="60" rx="65" ry="26" transform="rotate(30 110 60)" fill="#4a8f5c" opacity="0.55"/>
+        <ellipse cx="70"  cy="100" rx="55" ry="22" transform="rotate(15 70 100)" fill="#5fa36e" opacity="0.45"/>
+        <ellipse cx="150" cy="90"  rx="45" ry="18" transform="rotate(45 150 90)" fill="#3d7a50" opacity="0.38"/>
+      </svg>
+
+      <!-- Top-right accent leaf -->
+      <svg class="banner__leaf banner__leaf--tr" viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <ellipse cx="70" cy="80" rx="55" ry="22" transform="rotate(-15 70 80)" fill="#6db87e" opacity="0.7"/>
+        <line x1="70" y1="80" x2="70" y2="20" stroke="#6db87e" stroke-width="1.5" opacity="0.4"/>
+      </svg>
+
+      <div class="container banner__content">
+        <div class="banner__eyebrow">GD Palate · Campus Canteen</div>
+        <h1 class="banner__quote">
+          Fresh Food.<br/>
+          <em>Shorter Waits.</em><br/>
+          Better Breaks.
+        </h1>
+        <p class="banner__sub">Order ahead from your campus canteen — hot meals, dosas, biryanis, fresh juices and more, ready at your break time.</p>
+        <div class="banner__cta-row">
+          <button class="btn btn-primary" data-goto-menu id="banner-order-btn">
+            Browse Menu
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+          <button class="btn btn-outline" id="schedule-order-btn">
+            📅 Schedule Order
+          </button>
+        </div>
+      </div>
+    </section>
+    <!-- /BANNER -->
+
+    <!-- NEXT BREAK / QUICK ORDER -->
+    <section class="next-break" aria-label="Next break quick order">
+      <div class="container">
+        <div class="next-break__inner">
+
+          <div class="next-break__heading-block">
+            <div class="section-label">Quick Order</div>
+            <h2 class="section-heading">Your Next<br/>Break</h2>
+          </div>
+
+          <div class="next-break__card">
+            <div class="next-break__time-block">
+              <div class="next-break__time">11:05</div>
+              <div class="next-break__time-label">Pickup Slot · AM</div>
+            </div>
+            <div class="next-break__details">
+              <div class="next-break__items">2 × Coffee · Ready to order</div>
+              <div class="next-break__status">
+                <span class="next-break__status-dot"></span>
+                Canteen is open
+              </div>
+            </div>
+            <button class="btn btn-green btn-sm" id="next-break-order-btn" data-goto-menu>
+              Schedule Order
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </section>
+    <!-- /NEXT BREAK -->
+
+    <!-- MENU PREVIEW -->
+    <section class="menu-preview" aria-label="Today's menu preview">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <div class="section-label">Today's Highlights</div>
+            <h2 class="section-heading">What's Available Today</h2>
+          </div>
+          <button class="view-all-link" data-goto-menu id="view-all-menu-btn">
+            View Full Menu
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="food-grid" id="home-food-grid" aria-label="Featured menu items">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+    </section>
+    <!-- /MENU PREVIEW -->
+
+    <!-- FOOTER -->
+    <footer class="footer" role="contentinfo">
+      <div class="container">
+        <div class="footer__inner">
+          <div class="footer__brand">
+            <div class="footer__brand-name">🌿 GD Palate</div>
+            <p class="footer__brand-desc">Your campus canteen, reimagined. Fresh food, shorter waits, better campus breaks — every day.</p>
+          </div>
+          <div class="footer__col">
+            <div class="footer__col-title">Explore</div>
+            <ul class="footer__links">
+              <li><a href="#" data-page="menu">Full Menu</a></li>
+              <li><a href="#" data-page="orders">My Orders</a></li>
+              <li><a href="#" data-page="rewards">Rewards</a></li>
+            </ul>
+          </div>
+          <div class="footer__col">
+            <div class="footer__col-title">Hours</div>
+            <ul class="footer__links">
+              <li><span>Breakfast: 8:00 – 10:30 AM</span></li>
+              <li><span>Lunch: 12:00 – 2:30 PM</span></li>
+              <li><span>Snacks: 4:00 – 6:00 PM</span></li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer__bottom">
+          © 2024 GD Palate Campus Canteen · Built with care 🌱
+        </div>
+      </div>
+    </footer>
+
+  </section>
+  <!-- /PAGE HOME -->
+
+  <!-- ══════════════════════════════════════════════════════
+       PAGE: MENU
+       ══════════════════════════════════════════════════════ -->
+  <section id="page-menu" class="page" aria-label="Full menu">
+
+    <div class="menu-page">
+      <div class="container">
+
+        <!-- Menu Header -->
+        <div class="menu-page__header">
+          <div class="section-header" style="margin-bottom: var(--space-lg)">
+            <div>
+              <div class="section-label">GD Palate</div>
+              <h1 class="section-heading">Our Menu</h1>
+            </div>
+          </div>
+
+          <!-- Search -->
+          <div class="menu-search-wrap">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input
+              type="search"
+              class="menu-search"
+              id="menu-search"
+              placeholder="Search for dosa, biryani, coffee…"
+              aria-label="Search menu items"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+
+        <!-- Category Tabs -->
+        <div class="category-tabs" id="category-tabs" role="tablist" aria-label="Menu categories">
+          <!-- Rendered by JS -->
+        </div>
+
+        <!-- Veg / Non-veg Filter -->
+        <div class="veg-filter-row" role="group" aria-label="Dietary filter">
+          <button class="veg-pill active-all"   id="veg-pill-all"    onclick="setVegFilter('all')">All</button>
+          <button class="veg-pill"               id="veg-pill-veg"    onclick="setVegFilter('veg')">🟢 Veg</button>
+          <button class="veg-pill"               id="veg-pill-nonveg" onclick="setVegFilter('non-veg')">🔴 Non-Veg</button>
+        </div>
+
+        <!-- Results count -->
+        <p class="menu-results-label" id="menu-results-label" aria-live="polite"></p>
+
+        <!-- Food Grid -->
+        <div class="food-grid" id="menu-food-grid" aria-label="Menu items">
+          <!-- Rendered by JS -->
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Footer (duplicated for menu page) -->
+    <footer class="footer" role="contentinfo">
+      <div class="container">
+        <div class="footer__inner">
+          <div class="footer__brand">
+            <div class="footer__brand-name">🌿 GD Palate</div>
+            <p class="footer__brand-desc">Fresh food, shorter waits, better campus breaks — every day.</p>
+          </div>
+          <div class="footer__col">
+            <div class="footer__col-title">Explore</div>
+            <ul class="footer__links">
+              <li><a href="#" data-page="home">Home</a></li>
+              <li><a href="#" data-page="orders">My Orders</a></li>
+              <li><a href="#" data-page="rewards">Rewards</a></li>
+            </ul>
+          </div>
+          <div class="footer__col">
+            <div class="footer__col-title">Hours</div>
+            <ul class="footer__links">
+              <li><span>Breakfast: 8:00 – 10:30 AM</span></li>
+              <li><span>Lunch: 12:00 – 2:30 PM</span></li>
+              <li><span>Snacks: 4:00 – 6:00 PM</span></li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer__bottom">© 2024 GD Palate Campus Canteen · Built with care 🌱</div>
+      </div>
+    </footer>
+
+  </section>
+  <!-- /PAGE MENU -->
+
+  <!-- ══════════════════════════════════════════════════════
+       PAGE: ORDERS
+       ══════════════════════════════════════════════════════ -->
+  <section id="page-orders" class="page" aria-label="My orders">
+    <div class="container" style="padding-top: var(--space-xl); padding-bottom: var(--space-3xl)">
+      <div class="section-header" style="margin-bottom: var(--space-lg)">
+        <div>
+          <div class="section-label">GD Palate</div>
+          <h1 class="section-heading">My Orders & Live Pickup</h1>
+        </div>
+      </div>
+      <div id="orders-page-container">
+        <!-- Rendered dynamically by JS -->
+      </div>
+    </div>
+  </section>
+  <!-- /PAGE ORDERS -->
+
+  <!-- ══════════════════════════════════════════════════════
+       PAGE: REWARDS
+       ══════════════════════════════════════════════════════ -->
+  <section id="page-rewards" class="page" aria-label="Rewards">
+    <div style="min-height: 70vh; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:var(--space-lg); text-align:center; padding: var(--space-2xl) var(--space-lg)">
+      <div style="font-size:4rem">⭐</div>
+      <div class="section-label">Coming Soon</div>
+      <h1 class="section-heading">Rewards</h1>
+      <p style="color:var(--color-text-muted); max-width:400px; font-size:0.92rem">Earn points on every order and unlock special perks. Loyalty programme launching soon.</p>
+      <button class="btn btn-green" data-goto-menu>Start Ordering</button>
+    </div>
+  </section>
+  <!-- /PAGE REWARDS -->
+
+</main>
+
+<!-- ──────────────────────────────────────────────────────────
+     CHECKOUT MODAL SHEET
+     ────────────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="checkout-modal" role="dialog" aria-modal="true" aria-label="Order Checkout">
+  <div class="modal-sheet" style="max-width:480px">
+    <div class="modal-sheet__top">
+      <h2 class="modal-sheet__name">Checkout & Payment</h2>
+      <button class="modal-sheet__close" onclick="closeCheckoutModal()" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-sheet__body" id="checkout-modal-body">
+      <!-- Dynamically populated -->
+    </div>
+  </div>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────
+     ORDER CONFIRMATION MODAL SHEET
+     ────────────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="confirmation-modal" role="dialog" aria-modal="true" aria-label="Order Confirmation">
+  <div class="modal-sheet" style="max-width:480px">
+    <div class="modal-sheet__body" id="confirmation-modal-body">
+      <!-- Dynamically populated -->
+    </div>
+  </div>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────
+     SCRIPTS
+     ────────────────────────────────────────────────────────── -->
+<script src="js/menuData.js"></script>
+<script src="js/cart.js"></script>
+<script src="js/orderService.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
