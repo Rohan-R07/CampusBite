@@ -1,92 +1,46 @@
 """
-In-memory database for the Campus Canteen backend.
-Provides simple list storage and auto-increment ID helpers.
+Database connection and Supabase client initialization.
 """
 
-from typing import Dict, List, Any
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+from fastapi import HTTPException
+from supabase import create_client, Client
 
-# Initial sample canteens
-canteens: List[Dict[str, Any]] = [
-    {
-        "id": 1,
-        "name": "Main Campus Canteen",
-        "location": "Student Center, Ground Floor",
-        "is_open": True,
-    },
-    {
-        "id": 2,
-        "name": "North Block Food Corner",
-        "location": "North Academic Block, 1st Floor",
-        "is_open": True,
-    },
-]
+# Resolve .env from Backend/ or project root
+backend_env = Path(__file__).resolve().parent / ".env"
+root_env = Path(__file__).resolve().parent.parent / ".env"
 
-# Initial sample menu items
-menu_items: List[Dict[str, Any]] = [
-    {
-        "id": 1,
-        "name": "Veg Burger",
-        "description": "Crispy vegetable patty with lettuce and cheese",
-        "price": 60.0,
-        "available": True,
-        "canteen_id": 1,
-    },
-    {
-        "id": 2,
-        "name": "Paneer Roll",
-        "description": "Spiced cottage cheese wrapped in a paratha",
-        "price": 80.0,
-        "available": True,
-        "canteen_id": 1,
-    },
-    {
-        "id": 3,
-        "name": "Cold Coffee",
-        "description": "Chilled blended coffee with chocolate syrup",
-        "price": 50.0,
-        "available": True,
-        "canteen_id": 1,
-    },
-    {
-        "id": 4,
-        "name": "Masala Dosa",
-        "description": "Crispy crepe served with sambar and coconut chutney",
-        "price": 55.0,
-        "available": False,  # Sample item marked unavailable for testing
-        "canteen_id": 1,
-    },
-    {
-        "id": 5,
-        "name": "Hot Chocolate",
-        "description": "Rich hot cocoa with steamed milk",
-        "price": 45.0,
-        "available": True,
-        "canteen_id": 2,
-    },
-]
+if backend_env.exists():
+    load_dotenv(backend_env)
+elif root_env.exists():
+    load_dotenv(root_env)
+else:
+    load_dotenv()
 
-# In-memory orders store
-orders: List[Dict[str, Any]] = []
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
-# ID tracking counters
-_canteen_id_counter = 2
-_menu_item_id_counter = 5
-_order_id_counter = 0
+if not SUPABASE_URL or not SUPABASE_KEY:
+    raise RuntimeError(
+        "Missing Supabase credentials! Please ensure SUPABASE_URL and SUPABASE_KEY are defined in your .env file."
+    )
+
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 
-def get_next_canteen_id() -> int:
-    global _canteen_id_counter
-    _canteen_id_counter += 1
-    return _canteen_id_counter
-
-
-def get_next_menu_item_id() -> int:
-    global _menu_item_id_counter
-    _menu_item_id_counter += 1
-    return _menu_item_id_counter
-
-
-def get_next_order_id() -> int:
-    global _order_id_counter
-    _order_id_counter += 1
-    return _order_id_counter
+def handle_supabase_error(e: Exception):
+    """
+    Translates common Supabase / PostgREST exceptions into clear HTTPExceptions.
+    """
+    err_str = str(e)
+    if "PGRST205" in err_str or "schema cache" in err_str or "Could not find the table" in err_str:
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                "Supabase table not found in schema cache. "
+                "Please run the SQL schema from 'Backend/supabase_schema.sql' in your Supabase SQL Editor."
+            )
+        )
+    raise HTTPException(status_code=500, detail=f"Database error: {err_str}")
