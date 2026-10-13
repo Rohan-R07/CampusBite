@@ -1,3 +1,4 @@
+
 # 🍔 CampusBite - SNPSU Campus Canteen System
 
 A modern, fast, and beginner-friendly backend API built with **FastAPI** to streamline canteen operations, food menus, and student ordering across campus dining facilities.
